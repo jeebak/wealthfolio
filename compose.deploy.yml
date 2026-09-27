@@ -1,0 +1,29 @@
+# Optional overlay: pin the image to a release, keep a loopback port for local
+# health checks and MCP, and serve the UI through an existing nginx-proxy
+# (https://github.com/nginx-proxy/nginx-proxy) container so logins use HTTPS.
+# The proxy finds this container via VIRTUAL_HOST. Set these in .env.docker
+# (untracked), which the compose command loads with --env-file:
+#   WF_IMAGE_TAG       the release to run, e.g. 3.8.0
+#   WF_PROXY_HOST      the full hostname the proxy serves, e.g. wealthfolio.example.com
+#   WF_PROXY_NETWORK   the name of the existing Docker network the proxy is on
+# WF_PORT (default 8089) is the loopback port. Also list the proxy origin in
+# WF_CORS_ALLOW_ORIGINS.
+#
+#   docker compose --env-file .env.docker -f compose.yml -f compose.deploy.yml up -d
+services:
+  wealthfolio:
+    image: wealthfolio/wealthfolio:${WF_IMAGE_TAG:?set WF_IMAGE_TAG in .env.docker}
+    ports: !override
+      - "127.0.0.1:${WF_PORT:-8089}:8088"
+    environment:
+      VIRTUAL_HOST: ${WF_PROXY_HOST:?set WF_PROXY_HOST in .env.docker}
+      # nginx-proxy needs the port explicitly; the server listens on 8088.
+      VIRTUAL_PORT: "8088"
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    name: ${WF_PROXY_NETWORK:?set WF_PROXY_NETWORK in .env.docker}
+    external: true
