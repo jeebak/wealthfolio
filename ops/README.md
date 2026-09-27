@@ -21,8 +21,9 @@ consistent, and restarted even if the copy fails. Downtime is a few seconds.
 one timestamped subdirectory per run. Anything older than
 `$WEALTHFOLIO_BACKUP_RETENTION_DAYS` (default 7) is pruned.
 
-Each run also syncs to `s3://$WEALTHFOLIO_BACKUP_S3_BUCKET/<timestamp>/` with
-the AWS profile in `$WEALTHFOLIO_BACKUP_S3_PROFILE` (default `s3-backup`), which
+Each run also syncs to `s3://$WEALTHFOLIO_BACKUP_S3_BUCKET/$WEALTHFOLIO_BACKUP_S3_PREFIX/<timestamp>/`
+(prefix defaulting to `wealthfolio` so a bucket can be shared across services)
+with the AWS profile in `$WEALTHFOLIO_BACKUP_S3_PROFILE` (default `s3-backup`), which
 should be an IAM user with only `PutObject`/`GetObject`/`ListBucket` on that
 bucket and no `DeleteObject`, so a leaked key cannot wipe existing backups. Give
 the bucket its own lifecycle rule; remote retention is independent of the local
